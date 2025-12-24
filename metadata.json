@@ -1,0 +1,7 @@
+{
+  "name": "Glimmer Mood (微光日记)",
+  "description": "A minimalist mood journal that transforms small happy moments into beautiful AI-generated art cards.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
