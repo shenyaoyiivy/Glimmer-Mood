@@ -22,7 +22,6 @@ const App: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Simple migration: Ensure all entries have highlights array
           const migrated = parsed.map(e => ({
             ...e,
             highlights: e.highlights || []
@@ -36,10 +35,16 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+        alert("存储空间已满。为了继续记录，请尝试删除一些旧的记录（图片占用了大量空间）。");
+      }
+      console.error("Storage failed", e);
+    }
   }, [entries]);
 
-  // Robust date helper to prevent crashes
   const toLocal = (iso: string) => {
     try {
       const d = new Date(iso);
@@ -83,7 +88,7 @@ const App: React.FC = () => {
         poeticQuote: processed.poeticQuote,
         imageUrl,
         keywords: processed.keywords,
-        highlights: processed.highlights || [] // Fixed: Added highlights update
+        highlights: processed.highlights || []
       } : e));
     } catch (e) {
       console.error(e);
@@ -94,7 +99,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteEntry = (id: string) => {
-    if (confirm("确定要删除这一天的记忆吗？")) {
+    if (confirm("确定要删除这一天的记忆吗？删除后会释放存储空间。")) {
       setEntries(prev => prev.filter(e => e.id !== id));
     }
   };
@@ -136,7 +141,6 @@ const App: React.FC = () => {
         )}
       </main>
 
-      {/* Writing Modal Overlay */}
       {writingDate && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/10 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
